@@ -1,41 +1,43 @@
-# Carvex — central privada de prospecção, vendas e gestão
+# Carvex — central privada de prospecção, vendas e gestão (visual Windows 98)
 
-Sistema web de uso exclusivo do proprietário: sem cadastro público, toda rota exige sessão validada no servidor. Veja [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (decisões, plano por fases), [`docs/SECURITY.md`](docs/SECURITY.md) e [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md).
+Sistema de uso exclusivo do proprietário: **sem cadastro público**, toda rota exige sessão validada no servidor.
+Stack: Next.js 15 + TypeScript, PostgreSQL 16 + Prisma 6, Tailwind. Um único container + banco.
 
-## Estado atual — Fase 1 (Fundação) concluída
-Funcionando e testado: autenticação (argon2id), 2FA TOTP + códigos de recuperação, sessões revogáveis, anti brute force, auditoria, alerta de login, painel **Configurações → Segurança**, dashboard com indicadores reais (zerados até haver dados), layout responsivo (dark/light automático), schema completo (42 tabelas) com migration e seed, backup com teste de restauração.
-Módulos das Fases 2–10 aparecem no menu **desabilitados com o selo da fase** — não há botões falsos.
+## Módulos (todos funcionais)
+Dashboard · Prospecção (Google Places oficial + CSV, deduplicação, análise, score, oportunidades) · CRM (Kanban/lista, tags, timeline, follow-up) · Clientes (documentos, recorrência) · Mensagens (modelos por nicho, variáveis, aprovação manual) · Vendas (catálogo, propostas imprimíveis/PDF, funil) · Projetos (checklists, prazos, biblioteca) · Financeiro (receitas, despesas, lucro estimado, atrasos) · Automações (gatilho + condição + ação, rotinas agendadas) · IA (assistente; sugestões marcadas) · Relatórios · Busca global · Notificações · Configurações (segurança, regras comerciais, integrações, LGPD/lixeira/exportação, auditoria).
 
-## Requisitos
-Node ≥ 20, PostgreSQL ≥ 14 (testado no 16).
+Integrações sem chave aparecem como **AGUARDANDO INTEGRAÇÃO** (nada é fictício). Envio de WhatsApp é **manual por design**.
 
-## Instalação
+## Deploy (VPS com Docker)
+```bash
+git clone <repo> && cd system-carvex
+cp .env.example .env     # preencha (veja abaixo)
+docker compose up -d --build
+```
+Aponte um proxy HTTPS (Caddy/Nginx/Traefik) para `127.0.0.1:3000`. Exemplo Caddy: `seu-dominio.com.br { reverse_proxy 127.0.0.1:3000 }` (Caddy já sobrescreve `X-Forwarded-For`; em Nginx use `proxy_set_header X-Forwarded-For $remote_addr;`).
+
+No `.env`: `POSTGRES_PASSWORD`, `DATA_ENCRYPTION_KEY`, `APP_SECRET`, `CRON_SECRET` (cada um com `openssl rand -hex 32`), `OWNER_EMAIL`, `OWNER_PASSWORD` (≥12 caracteres, 3 tipos), `APP_URL`.
+No primeiro boot o container aplica as migrations, semeia a configuração padrão e cria o proprietário. Entre e **ative o 2FA** em Configurações → Segurança; depois remova `OWNER_PASSWORD` do `.env`.
+
+Outros hosts (Railway/Render/Fly): use o `Dockerfile`, um PostgreSQL gerenciado (`DATABASE_URL`), um volume em `/data` e agende `GET /api/cron` com `Authorization: Bearer $CRON_SECRET` a cada 15 min (o compose já faz isso pelo serviço `cron`).
+
+## Desenvolvimento local
 ```bash
 npm install
-cp .env.example .env            # preencha DATABASE_URL e gere os segredos:
-openssl rand -hex 32            # → DATA_ENCRYPTION_KEY
-openssl rand -hex 32            # → APP_SECRET
-npx prisma migrate deploy       # aplica migrations (dev: npm run db:migrate)
-npm run db:seed                 # pipeline, regras de score/oportunidade, nichos (sem dados fictícios)
-OWNER_EMAIL=voce@exemplo.com OWNER_NAME="Seu Nome" OWNER_PASSWORD='SenhaForte-123!' npm run owner:create
-npm run dev                     # http://localhost:3000
+cp .env.example .env   # NODE_ENV=development, DATABASE_URL local, segredos
+npx prisma migrate deploy && npm run bootstrap && npm run dev
+npm test && npm run typecheck && npm run lint
 ```
-Depois do primeiro login, ative o 2FA em **Configurações → Segurança**.
 
-## Scripts
-`dev` · `build` · `start` · `lint` · `typecheck` · `test` (Vitest) · `db:migrate` · `db:deploy` · `db:seed` · `owner:create`
+## Operação
+- **Backup:** `DATABASE_URL=... ./scripts/backup.sh ./backups 14` (pg_dump + SHA-256 + restauração de teste + retenção). Agende no cron do servidor e copie para fora da VPS. Também: Configurações → Dados e LGPD → exportar JSON. Restaurar: `pg_restore --clean --no-owner --dbname=<url> arquivo.dump`.
+- **Esqueceu a senha:** defina `OWNER_RESET=1` + `OWNER_PASSWORD` no `.env`, reinicie, depois remova `OWNER_RESET`. (Perdeu o 2FA: use um código de recuperação; sem eles, apague `mfaEnabled` no banco.)
+- **Rotinas:** pagamentos atrasados, recorrências, follow-ups, leads sem resposta, prazos, propostas expiradas e limpeza — rodam via `/api/cron` ou em Automações → Executar agora.
+- **IA:** `LLM_API_KEY` (Anthropic) · **Busca:** `GOOGLE_PLACES_API_KEY` (campos de telefone/site usam SKUs pagos do Google; respeite os termos de armazenamento).
 
-Redefinir a senha do proprietário: `OWNER_RESET=1 OWNER_EMAIL=... OWNER_PASSWORD=... npm run owner:create`.
+## Segurança (resumo)
+argon2id · 2FA TOTP + códigos de recuperação (segredo AES-256-GCM) · sessão opaca com hash no banco, expiração absoluta e por inatividade, logout remoto · anti brute force · CSRF (token + Origin) · CSP/HSTS/X-Frame-Options · validação com zod · Prisma parametrizado · autorização no servidor em toda página/ação · auditoria (login, finanças, exclusões, config) · erros técnicos só no log · segredos só em variáveis de ambiente.
+Limitações: rate limit genérico em memória (processo único); sem recuperação de senha por e-mail (use `OWNER_RESET`); CSP usa `'unsafe-inline'` (exigência do Next sem nonce); `DATA_ENCRYPTION_KEY` perdida = 2FA cadastrado irrecuperável.
 
-## Backup e restauração
-```bash
-DATABASE_URL=... ./scripts/backup.sh ./backups 14   # dump + SHA-256 + restauração de teste + retenção de 14 dias
-pg_restore --clean --no-owner --dbname="$DATABASE_URL_SEM_SCHEMA" backups/carvex-AAAAMMDD-HHMMSS.dump
-```
-O backup só é reportado como OK depois de restaurado em um banco temporário e conferido. Agende via cron e copie para fora do servidor.
-
-## Deploy
-`npm run build && npm run db:deploy && npm start` atrás de proxy TLS (HTTPS). Defina `NODE_ENV=production`, os segredos no secret manager e confira a seção "Operação em produção" de `docs/SECURITY.md`.
-
-## Próximos passos
-Fase 2 (CRM). Cada fase termina com checklist: funcionalidade, responsividade, segurança, erros, validação, estados vazios/loading, logs e permissões.
+## Estrutura
+`prisma/` schema, migrations, seed · `scripts/` bootstrap, backup · `src/app/` rotas · `src/server/` ações e regras (somente servidor) · `src/lib/` funções puras e segurança · `src/components/` UI Win98 · `docker/` entrypoint.

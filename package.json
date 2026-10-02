@@ -16,7 +16,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "owner:create": "tsx scripts/create-owner.ts"
+    "bootstrap": "tsx scripts/bootstrap.ts",
+    "owner:create": "tsx scripts/bootstrap.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

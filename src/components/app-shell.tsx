@@ -1,53 +1,52 @@
 import Link from "next/link";
-import { LogOut, Menu, ShieldCheck } from "lucide-react";
+import { Bell, LogOut, Monitor, Search } from "lucide-react";
+import { db } from "@/lib/db";
 import { logoutAction } from "@/server/auth-actions";
-import { NAV } from "./nav";
+import { requireUser } from "@/server/session";
+import { Clock } from "./clock";
+import { NAV, isActive } from "./nav";
 
-function NavList({ current }: { current: string }) {
+export async function AppShell({ children, current, title }: { children: React.ReactNode; current: string; title: string }) {
+  const s = await requireUser();
+  const unread = await db.notification.count({ where: { userId: s.userId, readAt: null } });
+  const active = NAV.find((n) => isActive(n.href, current)) ?? NAV[0]!;
   return (
-    <ul className="space-y-1">
-      {NAV.map(({ label, href, icon: Icon, phase }) => {
-        const active = href === "/" ? current === "/" : current.startsWith(href.split("/").slice(0, 2).join("/"));
-        const base = "flex items-center gap-3 rounded-lg px-3 py-2 text-sm";
-        return (
-          <li key={href}>
-            {phase ? (
-              <span aria-disabled="true" className={`${base} cursor-not-allowed text-muted/60`} title={`Disponível na Fase ${phase}`}>
-                <Icon size={16} /> {label} <span className="badge ml-auto">Fase {phase}</span>
-              </span>
-            ) : (
-              <Link href={href} aria-current={active ? "page" : undefined} className={`${base} ${active ? "bg-brand/10 font-medium text-brand" : "text-fg hover:bg-bg"}`}>
-                <Icon size={16} /> {label}
-              </Link>
-            )}
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-export function AppShell({ children, current, title, userName }: { children: React.ReactNode; current: string; title: string; userName: string }) {
-  return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[240px_1fr]">
-      <aside className="hidden border-r border-border bg-surface p-4 lg:block">
-        <div className="mb-6 flex items-center gap-2 px-2 text-lg font-semibold"><ShieldCheck size={20} className="text-brand" /> Carvex</div>
-        <nav aria-label="Principal"><NavList current={current} /></nav>
-      </aside>
-      <div className="min-w-0">
-        <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-surface/90 px-4 py-3 backdrop-blur">
-          <details className="relative lg:hidden">
-            <summary className="btn-ghost cursor-pointer list-none" aria-label="Menu"><Menu size={16} /></summary>
-            <nav aria-label="Principal (mobile)" className="absolute left-0 top-11 w-64 rounded-xl border border-border bg-surface p-3 shadow-lg"><NavList current={current} /></nav>
-          </details>
-          <h1 className="text-base font-semibold">{title}</h1>
-          <div className="ml-auto flex items-center gap-3 text-sm text-muted">
-            <span className="hidden sm:inline">{userName}</span>
-            <form action={logoutAction}><button className="btn-ghost" aria-label="Sair"><LogOut size={14} /> Sair</button></form>
+    <>
+      <div className="mx-auto max-w-[1400px] p-1 sm:p-3">
+        <div className="win">
+          <div className="win-title no-print">
+            <Monitor size={14} /> <span className="truncate">Carvex — {title}</span>
+            <span className="ml-auto hidden font-normal sm:inline">{s.user.name}</span>
           </div>
-        </header>
-        <main className="mx-auto max-w-6xl space-y-6 p-4 sm:p-6">{children}</main>
+          <nav aria-label="Principal" className="menubar no-print">
+            {NAV.map((n) => <Link key={n.href} href={n.href} aria-current={isActive(n.href, current) ? "page" : undefined}>{n.label}</Link>)}
+            <form action="/busca" className="ml-auto flex items-center gap-1 pl-2">
+              <Search size={13} /><input name="q" required minLength={2} placeholder="Busca global" aria-label="Busca global" className="input !min-h-[20px] !w-36 !py-0" />
+            </form>
+          </nav>
+          <main className="space-y-3 p-2 sm:p-3">{children}</main>
+          <div className="statusbar no-print"><span>Pronto</span><span className="ml-auto">Carvex 98</span></div>
+        </div>
       </div>
-    </div>
+
+      <div className="taskbar no-print">
+        <details className="relative">
+          <summary className="btn list-none"><Monitor size={14} /> Iniciar</summary>
+          <div className="startmenu win">
+            <div className="strip">Carvex 98</div>
+            <ul>
+              {NAV.map((n) => <li key={n.href}><Link href={n.href}><n.icon size={16} /> {n.label}</Link></li>)}
+              <li className="my-1 border-t border-border" />
+              <li><form action={logoutAction}><button><LogOut size={16} /> Sair</button></form></li>
+            </ul>
+          </div>
+        </details>
+        <Link href={active.href} className="btn-ghost !justify-start !font-bold sunken !bg-[#dfdfdf] max-w-[40vw] truncate"><active.icon size={14} /> <span className="truncate">{title}</span></Link>
+        <div className="tray">
+          <Link href="/notificacoes" aria-label={`Notificações: ${unread} não lidas`} className="flex items-center gap-1 text-black no-underline"><Bell size={14} />{unread > 0 && <b className="text-danger">{unread}</b>}</Link>
+          <Clock />
+        </div>
+      </div>
+    </>
   );
 }

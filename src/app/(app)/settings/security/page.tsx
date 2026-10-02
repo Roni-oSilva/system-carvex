@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { SettingsTabs } from "@/components/settings-tabs";
 import { ActionForm } from "@/components/form";
 import { changePasswordAction, mfaDisableAction, revokeSessionAction } from "@/server/auth-actions";
 import { MfaSetupClient } from "@/components/mfa-setup";
@@ -17,7 +18,8 @@ export default async function SecurityPage() {
   ]);
 
   return (
-    <AppShell current="/settings/security" title="Configurações → Segurança" userName={s.user.name}>
+    <AppShell current="/settings/security" title="Configurações → Segurança">
+      <SettingsTabs current="security" />
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="card space-y-3">
           <h2 className="font-semibold">Autenticação em duas etapas (2FA)</h2>
@@ -76,10 +78,6 @@ export default async function SecurityPage() {
         </section>
       </div>
 
-      <section className="card space-y-1 text-sm text-muted">
-        <h2 className="font-semibold text-fg">Integrações, API keys e backups</h2>
-        <p>AGUARDANDO INTEGRAÇÃO — o gerenciamento de integrações e credenciais chega com a Fase 10 (e as integrações em suas fases). Os backups seguem o procedimento em <code>docs/BACKUP.md</code>.</p>
-      </section>
     </AppShell>
   );
 }

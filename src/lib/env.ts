@@ -8,6 +8,11 @@ const schema = z.object({
   APP_SECRET: z.string().min(32, "APP_SECRET deve ter ao menos 32 caracteres"),
   SESSION_TTL_HOURS: z.coerce.number().int().min(1).max(168).default(12),
   SESSION_IDLE_MINUTES: z.coerce.number().int().min(5).max(1440).default(60),
+  CRON_SECRET: z.string().min(24).optional(),
+  DATA_DIR: z.string().default("./data"),
+  GOOGLE_PLACES_API_KEY: z.string().optional(),
+  LLM_API_KEY: z.string().optional(),
+  LLM_MODEL: z.string().default("claude-sonnet-5-5"),
 });
 
 export type Env = z.infer<typeof schema>;

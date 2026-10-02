@@ -2,25 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tema Windows 98: cinza #c0c0c0, bordas chanfradas, barra de título azul-marinho, desktop verde-azulado. */
 :root {
-  --bg: 246 247 249; --surface: 255 255 255; --border: 226 229 234;
-  --fg: 17 24 39; --muted: 107 114 128; --brand: 37 99 235;
-  --danger: 220 38 38; --ok: 22 163 74; --warn: 217 119 6;
+  --bg: 192 192 192; --surface: 192 192 192; --border: 128 128 128;
+  --fg: 0 0 0; --muted: 64 64 64; --brand: 0 0 128;
+  --danger: 160 0 0; --ok: 0 100 0; --warn: 128 80 0;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: 11 14 19; --surface: 20 24 32; --border: 38 44 55;
-    --fg: 232 236 242; --muted: 148 158 174; --brand: 96 140 250;
-    --danger: 248 113 113; --ok: 74 222 128; --warn: 251 191 36;
-  }
+html { color-scheme: light; }
+body {
+  @apply text-fg antialiased;
+  background: #008080;
+  font-family: Tahoma, "MS Sans Serif", "Segoe UI", Verdana, Arial, sans-serif;
+  font-size: 13px;
+  padding-bottom: 36px;
 }
-body { @apply bg-bg text-fg antialiased; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: #000080; }
+::selection { background: #000080; color: #fff; }
+* { scrollbar-color: #c0c0c0 #dfdfdf; }
 
 @layer components {
-  .card { @apply rounded-xl border border-border bg-surface p-5; }
-  .input { @apply w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/30; }
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50; }
-  .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-1.5 text-sm transition hover:bg-bg; }
-  .label { @apply mb-1 block text-xs font-medium text-muted; }
-  .badge { @apply inline-flex whitespace-nowrap items-center rounded-full border border-border px-2 py-0.5 text-xs text-muted; }
+  .raised { border: 2px solid; border-color: #fff #404040 #404040 #fff; box-shadow: inset -1px -1px #808080, inset 1px 1px #dfdfdf; background: #c0c0c0; }
+  .sunken { border: 2px solid; border-color: #808080 #fff #fff #808080; box-shadow: inset 1px 1px #404040, inset -1px -1px #dfdfdf; background: #fff; }
+  .win { @apply raised; padding: 2px; }
+  .win-title { background: linear-gradient(90deg, #000080, #1084d0); color: #fff; font-weight: 700; padding: 3px 6px; display: flex; align-items: center; gap: 6px; }
+  .win-body { padding: 10px; }
+  .card { @apply win; padding: 10px; }
+  .group { border: 2px groove #fff; padding: 10px 10px 8px; margin-top: 8px; position: relative; }
+  .group > legend { padding: 0 4px; font-weight: 700; }
+  .btn, .btn-ghost { @apply raised; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 3px 14px; min-height: 24px; color: #000; cursor: pointer; white-space: nowrap; text-decoration: none; }
+  .btn { font-weight: 700; }
+  .btn:active, .btn-ghost:active { border-color: #404040 #fff #fff #404040; box-shadow: inset 1px 1px #808080; padding: 4px 13px 2px 15px; }
+  .btn:focus-visible, .btn-ghost:focus-visible { outline: 1px dotted #000; outline-offset: -5px; }
+  .btn:disabled { color: #808080; text-shadow: 1px 1px #fff; cursor: not-allowed; }
+  .btn-danger { color: #a00000; }
+  .input { @apply sunken; width: 100%; padding: 3px 4px; min-height: 24px; color: #000; outline: none; }
+  .input:focus { outline: 1px dotted #000; outline-offset: -4px; }
+  textarea.input { min-height: 72px; }
+  .label { display: block; margin-bottom: 2px; font-size: 12px; }
+  .badge { border: 1px solid #808080; background: #dfdfdf; padding: 0 5px; font-size: 11px; white-space: nowrap; display: inline-block; }
+  .tbl { width: 100%; border-collapse: collapse; background: #fff; }
+  .tbl th { @apply raised; text-align: left; padding: 3px 8px; font-weight: 400; border-width: 1px; box-shadow: none; }
+  .tbl td { padding: 3px 8px; border-bottom: 1px solid #dfdfdf; vertical-align: top; }
+  .tbl tr:hover td { background: #e8e8ff; }
+  .menubar { display: flex; gap: 0; overflow-x: auto; border-bottom: 1px solid #808080; box-shadow: 0 1px #fff; padding: 2px; }
+  .menubar a { padding: 2px 9px; color: #000; text-decoration: none; white-space: nowrap; }
+  .menubar a:hover { background: #000080; color: #fff; }
+  .menubar a[aria-current="page"] { text-decoration: underline; font-weight: 700; }
+  .statusbar { display: flex; gap: 4px; padding: 3px 2px 0; font-size: 12px; }
+  .statusbar > span { border: 1px solid; border-color: #808080 #fff #fff #808080; padding: 1px 6px; }
+  .taskbar { position: fixed; left: 0; right: 0; bottom: 0; height: 34px; z-index: 50; display: flex; align-items: center; gap: 4px; padding: 3px 4px; background: #c0c0c0; border-top: 2px solid #fff; box-shadow: 0 -1px #dfdfdf; }
+  .tray { @apply sunken; background: #c0c0c0; display: flex; align-items: center; gap: 10px; padding: 2px 10px; margin-left: auto; min-height: 24px; box-shadow: none; border-width: 1px; }
+  .startmenu { position: absolute; bottom: 30px; left: 0; width: 240px; display: flex; }
+  .startmenu .strip { background: linear-gradient(0deg, #000080, #1084d0); color: #fff; writing-mode: vertical-rl; transform: rotate(180deg); padding: 8px 4px; font-weight: 700; font-size: 18px; letter-spacing: 1px; }
+  .startmenu ul { flex: 1; padding: 2px; }
+  .startmenu a, .startmenu button { display: flex; align-items: center; gap: 10px; padding: 6px 10px; width: 100%; text-align: left; color: #000; text-decoration: none; }
+  .startmenu a:hover, .startmenu button:hover { background: #000080; color: #fff; }
+  .msg { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; margin-bottom: 8px; }
+  .msg-err { @apply sunken; background: #ffffe1; color: #a00000; }
+  .msg-ok { @apply sunken; background: #ffffe1; white-space: pre-wrap; }
+  .kan-col { @apply sunken; background: #dfdfdf; min-width: 220px; width: 220px; padding: 4px; }
+  .kan-card { @apply raised; padding: 6px; margin-bottom: 6px; }
+}
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; padding: 0; }
+  .win, .card { border: none; box-shadow: none; }
 }

@@ -1,0 +1,37 @@
+# Produção simples em uma VPS: app + PostgreSQL + agendador. Coloque um proxy HTTPS (Caddy/Nginx/Traefik) na frente.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: carvex
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}
+      POSTGRES_DB: carvex
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carvex"]
+      interval: 10s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://carvex:${POSTGRES_PASSWORD}@db:5432/carvex?schema=public
+      DATA_DIR: /data
+    volumes: [appdata:/data]
+    ports: ["127.0.0.1:3000:3000"]   # exponha só via proxy HTTPS
+
+  cron:
+    image: curlimages/curl:8.10.1
+    restart: unless-stopped
+    depends_on: [app]
+    env_file: .env
+    entrypoint: ["/bin/sh", "-c", "while true; do sleep 900; curl -fsS -H \"Authorization: Bearer $$CRON_SECRET\" http://app:3000/api/cron >/dev/null || echo cron-falhou; done"]
+
+volumes:
+  pgdata:
+  appdata:
