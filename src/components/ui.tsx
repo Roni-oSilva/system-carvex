@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AlertTriangle, Info } from "lucide-react";
+import { Mascot } from "./mascot";
 
 export type SP = Promise<Record<string, string | string[] | undefined>>;
 export const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
@@ -7,7 +8,7 @@ export const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0
 export function Win({ title, children, className = "", actions }: { title: string; children: ReactNode; className?: string; actions?: ReactNode }) {
   return (
     <section className={`win ${className}`}>
-      <div className="win-title"><span className="truncate">{title}</span><span className="ml-auto flex gap-1 font-normal">{actions}</span></div>
+      <div className="win-title"><span className="truncate text-[15px]">{title}</span><span className="ml-auto flex gap-1 font-normal">{actions}</span></div>
       <div className="win-body">{children}</div>
     </section>
   );
@@ -42,13 +43,15 @@ export function Field({ label, children, className = "" }: { label: string; chil
   return <label className={`block ${className}`}><span className="label">{label}</span>{children}</label>;
 }
 
-export const Empty = ({ children }: { children: ReactNode }) => <p className="sunken p-4 text-center text-muted">{children}</p>;
+export const Empty = ({ children }: { children: ReactNode }) => (
+  <div className="sunken flex flex-col items-center gap-2 p-5 text-center text-muted"><Mascot size={64} mood="sleep" />{children}</div>
+);
 
 export function Stat({ label, value, tone }: { label: string; value: ReactNode; tone?: "danger" | "ok" }) {
   return (
-    <div className="sunken p-2">
-      <p className="text-xs text-muted">{label}</p>
-      <p className={`text-xl font-bold tabular-nums ${tone === "danger" ? "text-danger" : tone === "ok" ? "text-ok" : ""}`}>{value}</p>
+    <div className="sunken p-3">
+      <p className="text-xs font-bold text-muted">{label}</p>
+      <p className={`stat-num tabular-nums ${tone === "danger" ? "text-danger" : tone === "ok" ? "text-ok" : ""}`}>{value}</p>
     </div>
   );
 }

@@ -1,17 +1,24 @@
 import { redirect } from "next/navigation";
-import { PixelIcon } from "@/components/pixel-icon";
 import { LoginForm } from "@/components/login-form";
+import { Mascot } from "@/components/mascot";
 import { getSession } from "@/server/session";
 
 export default async function LoginPage() {
   if (await getSession()) redirect("/");
   return (
-    <main className="mx-auto flex min-h-[90vh] max-w-sm flex-col justify-center px-3">
-      <div className="win">
-        <div className="win-title"><PixelIcon name="lock" /> Bem-vindo ao Carvex</div>
-        <div className="win-body space-y-3">
-          <p>Digite seu e-mail e senha para entrar. Acesso restrito ao proprietário.</p>
-          <LoginForm />
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-6 px-4 py-10">
+      <h1 className="hero-title text-center text-5xl text-white sm:text-7xl" style={{ textShadow: "0 5px 0 #0e1240" }}>carvex<span className="text-[#ffd23f]">.</span></h1>
+      <div className="win w-full max-w-xl">
+        <div className="win-title"><span>CARVEX ID · acesso restrito</span></div>
+        <div className="win-body grid gap-5 sm:grid-cols-[170px_1fr]">
+          <div className="sunken grid place-items-center p-3 text-center">
+            <Mascot size={120} wave mood="wink" className="float" />
+            <p className="mt-2 text-xs font-extrabold uppercase tracking-wide">Proprietário</p>
+          </div>
+          <div className="space-y-3">
+            <p className="font-bold">Mostre seu crachá! Entre com e-mail e senha.</p>
+            <LoginForm />
+          </div>
         </div>
       </div>
     </main>

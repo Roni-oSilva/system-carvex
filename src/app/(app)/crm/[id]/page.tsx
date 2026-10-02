@@ -117,7 +117,7 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
             <button className="btn">Registrar</button>
           </Form>
         </div>
-        <ul className="sunken mt-3 max-h-80 divide-y divide-[#dfdfdf] overflow-auto">
+        <ul className="sunken mt-3 max-h-80 divide-y divide-[#e4e9ff] overflow-auto">
           {lead.interactions.length === 0 && <li className="p-2 text-muted">Sem histórico ainda.</li>}
           {lead.interactions.map((i) => <li key={i.id} className="p-2"><span className="badge mr-2">{i.type}</span>{i.aiGenerated && <span className="badge mr-2">IA</span>}<span className="whitespace-pre-wrap">{i.summary}</span><span className="ml-2 text-xs text-muted">{dtt(i.createdAt)}</span></li>)}
         </ul>

@@ -1,20 +1,20 @@
-import type { IconName } from "./pixel-icon";
+import { Banknote, Bot, FolderKanban, Kanban, LayoutDashboard, MessageSquare, Search, Settings, ShoppingBag, Users, Workflow, BarChart3, type LucideIcon } from "lucide-react";
 
-export type NavItem = { label: string; href: string; icon: IconName };
+export type NavItem = { label: string; href: string; icon: LucideIcon; color: string };
 
 export const NAV: NavItem[] = [
-  { label: "Dashboard", href: "/", icon: "dashboard" },
-  { label: "Prospecção", href: "/prospeccao", icon: "globe" },
-  { label: "CRM", href: "/crm", icon: "folder" },
-  { label: "Clientes", href: "/clientes", icon: "users" },
-  { label: "Mensagens", href: "/mensagens", icon: "note" },
-  { label: "Vendas", href: "/vendas", icon: "bag" },
-  { label: "Projetos", href: "/projetos", icon: "window" },
-  { label: "Financeiro", href: "/financeiro", icon: "money" },
-  { label: "Automações", href: "/automacoes", icon: "gear" },
-  { label: "IA", href: "/ia", icon: "robot" },
-  { label: "Relatórios", href: "/relatorios", icon: "chart" },
-  { label: "Configurações", href: "/settings/security", icon: "sliders" },
+  { label: "Dashboard", href: "/", icon: LayoutDashboard, color: "#2f5bff" },
+  { label: "Prospecção", href: "/prospeccao", icon: Search, color: "#14b8a6" },
+  { label: "CRM", href: "/crm", icon: Kanban, color: "#8a5cf6" },
+  { label: "Clientes", href: "/clientes", icon: Users, color: "#ff6fa5" },
+  { label: "Mensagens", href: "/mensagens", icon: MessageSquare, color: "#38a8f8" },
+  { label: "Vendas", href: "/vendas", icon: ShoppingBag, color: "#ff9f1c" },
+  { label: "Projetos", href: "/projetos", icon: FolderKanban, color: "#e0a800" },
+  { label: "Financeiro", href: "/financeiro", icon: Banknote, color: "#16a34a" },
+  { label: "Automações", href: "/automacoes", icon: Workflow, color: "#6366f1" },
+  { label: "IA", href: "/ia", icon: Bot, color: "#d946ef" },
+  { label: "Relatórios", href: "/relatorios", icon: BarChart3, color: "#0e9aa7" },
+  { label: "Configurações", href: "/settings/security", icon: Settings, color: "#64748b" },
 ];
 
 export const isActive = (href: string, current: string) =>
