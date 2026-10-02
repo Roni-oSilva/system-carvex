@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { parseCsv, mapCsv } from "@/lib/csv";
-import { searchPlaces, placesConfigured } from "@/lib/google-places";
+import { searchPlaces } from "@/lib/osm-places";
 import { log } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
 import { act, opt, parse, UserError } from "./guard";
@@ -22,21 +22,20 @@ async function nicheIdFor(name: string) {
   return n?.id ?? null;
 }
 
-/** Busca via Google Places (API oficial). O processamento é registrado como Job (PENDENTE → PROCESSANDO → CONCLUÍDO/ERRO). */
+/** Busca via OpenStreetMap (gratuita, sem chave). O processamento é registrado como Job (PENDENTE → PROCESSANDO → CONCLUÍDO/ERRO). */
 export async function prospectSearchAction(form: FormData): Promise<void> {
   await act(form, "/prospeccao", async (s) => {
     const d = parse(schema, form);
-    if (!placesConfigured()) throw new UserError("Busca automática indisponível: AGUARDANDO INTEGRAÇÃO (GOOGLE_PLACES_API_KEY). Você já pode importar uma planilha CSV ou cadastrar leads manualmente.");
     if (!rateLimit(`prospect:${s.userId}`, 6, 3600_000)) throw new UserError("Limite de buscas por hora atingido. Aguarde um pouco.");
     const query = [d.keyword, d.nicheName, "em", d.city, d.region].filter(Boolean).join(" ");
     const job = await db.job.create({ data: { type: "lead_search", status: "PROCESSING", startedAt: new Date(), payload: { query, quantity: d.quantity } } });
     try {
-      const places = await searchPlaces(query, d.quantity);
+      const places = await searchPlaces({ niche: d.nicheName, city: d.city, region: opt(d.region) ?? undefined, keyword: opt(d.keyword) ?? undefined, limit: d.quantity });
       const rules = await loadRules();
       const nicheId = await nicheIdFor(d.nicheName);
       let created = 0, merged = 0;
       for (const p of places) {
-        const r = await ingestLead({ name: p.name, category: p.category, nicheId, city: d.city, address: p.address, phone: p.phone, website: p.website, rating: p.rating, reviewCount: p.reviewCount, provider: "google_places", externalId: p.externalId, rawRef: { mapsUrl: p.mapsUrl } }, rules);
+        const r = await ingestLead({ name: p.name, category: p.category, nicheId, city: d.city, address: p.address, phone: p.phone, website: p.website, instagram: p.instagram, email: p.email, provider: "openstreetmap", externalId: p.externalId, rawRef: { mapsUrl: p.mapsUrl } }, rules);
         if (r.result === "created") created++; else merged++;
       }
       await db.job.update({ where: { id: job.id }, data: { status: "DONE", finishedAt: new Date(), result: { found: places.length, created, merged } } });
@@ -45,8 +44,8 @@ export async function prospectSearchAction(form: FormData): Promise<void> {
     } catch (e) {
       log.error("lead_search_failed", { err: e });
       await db.job.update({ where: { id: job.id }, data: { status: "ERROR", finishedAt: new Date(), error: "Falha na busca (veja o log do servidor)" } });
-      await notify("INTEGRATION_FAILED", "Falha na integração Google Places", undefined, "/prospeccao", 1);
-      throw new UserError("A busca falhou. Verifique a chave da API e tente novamente.");
+      await notify("INTEGRATION_FAILED", "Falha na busca (OpenStreetMap)", undefined, "/prospeccao", 1);
+      throw new UserError("A busca falhou. O serviço público do OpenStreetMap pode estar ocupado — tente de novo em alguns minutos.");
     }
   });
 }

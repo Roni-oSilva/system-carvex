@@ -10,7 +10,6 @@ const schema = z.object({
   SESSION_IDLE_MINUTES: z.coerce.number().int().min(5).max(1440).default(60),
   CRON_SECRET: z.string().min(24).optional(),
   DATA_DIR: z.string().default("./data"),
-  GOOGLE_PLACES_API_KEY: z.string().optional(),
   LLM_API_KEY: z.string().optional(),
   LLM_MODEL: z.string().default("claude-sonnet-5-5"),
 });

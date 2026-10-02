@@ -3,7 +3,6 @@ import { AppShell } from "@/components/app-shell";
 import { Field, Flash, Form, Group, Win, type SP } from "@/components/ui";
 import { db } from "@/lib/db";
 import { dtt } from "@/lib/format";
-import { placesConfigured } from "@/lib/google-places";
 import { ctx } from "@/server/guard";
 import { importCsvAction, prospectSearchAction } from "@/server/prospect-actions";
 
@@ -16,13 +15,11 @@ export default async function ProspectPage({ searchParams }: { searchParams: SP 
     db.job.findMany({ where: { type: { in: ["lead_search", "csv_import"] } }, orderBy: { createdAt: "desc" }, take: 8 }),
     db.lead.findMany({ where: { deletedAt: null }, orderBy: { createdAt: "desc" }, take: 8, include: { niche: true } }),
   ]);
-  const places = placesConfigured();
   return (
     <AppShell current="/prospeccao" title="Prospecção">
       <Flash sp={searchParams} />
       <div className="grid gap-3 lg:grid-cols-2">
-        <Win title="Buscar empresas (Google Places — API oficial)">
-          {!places && <p className="msg msg-err">AGUARDANDO INTEGRAÇÃO: defina GOOGLE_PLACES_API_KEY para ativar a busca automática.</p>}
+        <Win title="Buscar empresas (OpenStreetMap — gratuito)">
           <Form action={prospectSearchAction} csrf={csrf}>
             <Field label="Nicho *"><input name="nicheName" list="niches" required className="input" placeholder="ex.: Barbearia" /></Field>
             <datalist id="niches">{niches.map((n) => <option key={n.id} value={n.name} />)}</datalist>
@@ -32,8 +29,8 @@ export default async function ProspectPage({ searchParams }: { searchParams: SP 
               <Field label="Palavra-chave"><input name="keyword" className="input" /></Field>
               <Field label="Quantidade (máx. 60)"><input name="quantity" type="number" min={1} max={60} defaultValue={20} className="input" /></Field>
             </div>
-            <button className="btn" disabled={!places}>Buscar leads</button>
-            <p className="text-xs text-muted">Somente API oficial. Cada empresa é analisada, pontuada e deduplicada (telefone, site, nome+endereço). Dados ausentes ficam como “não encontrado”.</p>
+            <button className="btn">Buscar leads</button>
+            <p className="text-xs text-muted">Fonte: OpenStreetMap (sem chave, uso justo; dados © colaboradores do OSM, ODbL). Cobertura varia por cidade e telefone/site costumam faltar — ficam “não encontrado”; complemente via CSV/manual. Cada empresa é analisada, pontuada e deduplicada (telefone, site, nome+endereço). Dados ausentes ficam como “não encontrado”.</p>
           </Form>
         </Win>
 

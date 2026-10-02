@@ -4,7 +4,7 @@ Sistema de uso exclusivo do proprietário: **sem cadastro público**, toda rota 
 Stack: Next.js 15 + TypeScript, PostgreSQL 16 + Prisma 6, Tailwind. Um único container + banco.
 
 ## Módulos (todos funcionais)
-Dashboard · Prospecção (Google Places oficial + CSV, deduplicação, análise, score, oportunidades) · CRM (Kanban/lista, tags, timeline, follow-up) · Clientes (documentos, recorrência) · Mensagens (modelos por nicho, variáveis, aprovação manual) · Vendas (catálogo, propostas imprimíveis/PDF, funil) · Projetos (checklists, prazos, biblioteca) · Financeiro (receitas, despesas, lucro estimado, atrasos) · Automações (gatilho + condição + ação, rotinas agendadas) · IA (assistente; sugestões marcadas) · Relatórios · Busca global · Notificações · Configurações (segurança, regras comerciais, integrações, LGPD/lixeira/exportação, auditoria).
+Dashboard · Prospecção (OpenStreetMap gratuito + CSV, deduplicação, análise, score, oportunidades) · CRM (Kanban/lista, tags, timeline, follow-up) · Clientes (documentos, recorrência) · Mensagens (modelos por nicho, variáveis, aprovação manual) · Vendas (catálogo, propostas imprimíveis/PDF, funil) · Projetos (checklists, prazos, biblioteca) · Financeiro (receitas, despesas, lucro estimado, atrasos) · Automações (gatilho + condição + ação, rotinas agendadas) · IA (assistente; sugestões marcadas) · Relatórios · Busca global · Notificações · Configurações (segurança, regras comerciais, integrações, LGPD/lixeira/exportação, auditoria).
 
 Integrações sem chave aparecem como **AGUARDANDO INTEGRAÇÃO** (nada é fictício). Envio de WhatsApp é **manual por design**.
 
@@ -33,7 +33,7 @@ npm test && npm run typecheck && npm run lint
 - **Backup:** automático todo dia pela rotina `/api/cron` (com teste de restauração e retenção de 14 dias) e manual em Configurações → Backups (gerar, baixar, testar restauração). Os arquivos ficam em `/data/backups`: baixe cópias para fora da VPS. Alternativa por linha de comando: `DATABASE_URL=... ./scripts/backup.sh ./backups 14`. Também: Configurações → Dados e LGPD → exportar JSON. Restaurar: `pg_restore --clean --no-owner --dbname=<url> arquivo.dump`.
 - **Esqueceu a senha:** defina `OWNER_RESET=1` + `OWNER_PASSWORD` no `.env`, reinicie, depois remova `OWNER_RESET`. (Perdeu o 2FA: use um código de recuperação; sem eles, apague `mfaEnabled` no banco.)
 - **Rotinas:** pagamentos atrasados, recorrências, follow-ups, leads sem resposta, prazos, propostas expiradas e limpeza — rodam via `/api/cron` ou em Automações → Executar agora.
-- **IA:** `LLM_API_KEY` (Anthropic) · **Busca:** `GOOGLE_PLACES_API_KEY` (campos de telefone/site usam SKUs pagos do Google; respeite os termos de armazenamento).
+- **IA:** `LLM_API_KEY` (Anthropic) · **Busca de empresas:** OpenStreetMap (Nominatim + Overpass), gratuita e sem chave, com limite de 6 buscas/hora no app para respeitar o uso justo. A cobertura depende do mapeamento da cidade; telefone e site costumam faltar (complete com CSV). Dados © colaboradores do OpenStreetMap (ODbL).
 
 ## Segurança (resumo)
 argon2id · 2FA TOTP + códigos de recuperação (segredo AES-256-GCM) · sessão opaca com hash no banco, expiração absoluta e por inatividade, logout remoto · anti brute force · CSRF (token + Origin) · CSP/HSTS/X-Frame-Options · validação com zod · Prisma parametrizado · autorização no servidor em toda página/ação · auditoria (login, finanças, exclusões, config) · erros técnicos só no log · segredos só em variáveis de ambiente.
