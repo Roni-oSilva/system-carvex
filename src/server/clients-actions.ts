@@ -1,8 +1,7 @@
 "use server";
 
-import { mkdir, unlink, writeFile } from "node:fs/promises";
+import { unlink } from "node:fs/promises";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { audit } from "@/lib/audit";
 import { db } from "@/lib/db";
@@ -46,20 +45,17 @@ export async function deleteClientAction(form: FormData): Promise<void> {
 const ALLOWED = new Map([["application/pdf", ".pdf"], ["image/png", ".png"], ["image/jpeg", ".jpg"], ["image/webp", ".webp"], ["text/plain", ".txt"], ["application/zip", ".zip"],
   ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".docx"], ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ".xlsx"]]);
 
+/** Os arquivos ficam no próprio banco (bytea): funciona em hospedagem gratuita sem disco persistente e entra nos backups do banco. */
 export async function uploadDocumentAction(form: FormData): Promise<void> {
   const clientId = String(form.get("clientId"));
   await act(form, `/clientes/${clientId}`, async (s) => {
     const f = form.get("file");
     if (!(f instanceof File) || f.size === 0) throw new UserError("Selecione um arquivo.");
-    if (f.size > 10 * 1024 * 1024) throw new UserError("Arquivo muito grande (máx. 10 MB).");
+    if (f.size > 5 * 1024 * 1024) throw new UserError("Arquivo muito grande (máx. 5 MB).");
     const ext = ALLOWED.get(f.type);
     if (!ext) throw new UserError("Tipo não permitido (use PDF, imagem, DOCX, XLSX, TXT ou ZIP).");
-    const key = `${randomUUID()}${ext}`;
-    const dir = path.resolve(env().DATA_DIR, "uploads");
-    await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, key), Buffer.from(await f.arrayBuffer()));
     const name = f.name.replace(/[^\w.\- ]+/g, "_").slice(0, 120) || `arquivo${ext}`;
-    const doc = await db.document.create({ data: { clientId, name, storageKey: key, mime: f.type, sizeBytes: f.size } });
+    const doc = await db.document.create({ data: { clientId, name, storageKey: "db", data: Buffer.from(await f.arrayBuffer()), mime: f.type, sizeBytes: f.size } });
     await audit({ action: "document.upload", userId: s.userId, entity: "document", entityId: doc.id });
     return { msg: "Documento enviado." };
   });
@@ -70,7 +66,7 @@ export async function deleteDocumentAction(form: FormData): Promise<void> {
   const doc = await db.document.findUniqueOrThrow({ where: { id } });
   await act(form, `/clientes/${doc.clientId}`, async (s) => {
     await db.document.update({ where: { id }, data: { deletedAt: new Date() } });
-    await unlink(path.join(path.resolve(env().DATA_DIR, "uploads"), doc.storageKey)).catch(() => undefined);
+    if (doc.storageKey !== "db") await unlink(path.join(path.resolve(env().DATA_DIR, "uploads"), path.basename(doc.storageKey))).catch(() => undefined);
     await audit({ action: "document.delete", userId: s.userId, entity: "document", entityId: id });
     return { msg: "Documento excluído." };
   });

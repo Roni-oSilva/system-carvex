@@ -7,52 +7,49 @@ Stack: Next.js 15 + TypeScript, PostgreSQL 16 + Prisma 6, Tailwind. Tudo roda em
 
 ---
 
-## Como colocar no ar (passo a passo)
+## Como colocar no ar
 
-### O que você precisa
-1. **Um servidor (VPS)** Linux Ubuntu 22.04/24.04 com 2 GB de RAM (qualquer provedor: Hetzner, DigitalOcean, Contabo, Oracle Cloud etc.). Custa em torno de US$ 5/mês; confira o plano atual no provedor.
-2. **Um domínio** (ex.: `crm.seudominio.com.br`) com um registro **A** apontando para o IP do servidor.
+Há dois caminhos. **Escolha o A se não quer gastar nada.**
 
-### Passos
-```bash
-# 1) No servidor (via SSH), instale o Docker:
-curl -fsSL https://get.docker.com | sh
+### Caminho A — 100% gratuito, sem servidor (Render + Neon + cron-job.org)
+Tudo pelo navegador, sem terminal. Você precisa de uma conta no GitHub (onde o código já está), no **Neon**, no **Render** e no **cron-job.org**. Os planos gratuitos mudam com o tempo: confirme os limites atuais em cada site.
 
-# 2) Baixe o projeto (branch com o código):
-git clone -b claude/prompt-mestre-saas-crm-58ylp6 https://github.com/Roni-oSilva/system-carvex.git
-cd system-carvex
+1. **Banco de dados grátis (Neon):** em neon.tech crie uma conta e um projeto (PostgreSQL 16). Copie a *connection string* **direta** (não a "pooled") — algo como `postgresql://usuario:senha@ep-xxx.neon.tech/neondb?sslmode=require`. Se aparecer `&channel_binding=require` no final, apague esse trecho.
+2. **Gere 4 segredos** (um para cada) — em qualquer gerador de senha com 64 caracteres hexadecimais, ou no terminal `openssl rand -hex 32`: `DATA_ENCRYPTION_KEY`, `APP_SECRET`, `CRON_SECRET` (e guarde-os num lugar seguro).
+3. **Aplicação grátis (Render):** em render.com → **New → Web Service** → conecte o seu GitHub, escolha o repositório `system-carvex` e a branch do código → **Runtime: Docker** → **Instance type: Free**. Em **Environment Variables** coloque:
 
-# 3) Crie o arquivo de configuração:
-cp .env.example .env
-nano .env
-```
-No `.env` preencha:
-| Variável | O que colocar |
+| Variável | Valor |
 |---|---|
-| `DOMAIN` / `APP_URL` | seu domínio (`crm.seudominio.com.br` e `https://crm.seudominio.com.br`) |
-| `POSTGRES_PASSWORD`, `DATA_ENCRYPTION_KEY`, `APP_SECRET`, `CRON_SECRET` | um valor diferente para cada, gerado com `openssl rand -hex 32` |
+| `DATABASE_URL` | a connection string do Neon |
+| `DATA_ENCRYPTION_KEY`, `APP_SECRET`, `CRON_SECRET` | os segredos do passo 2 |
+| `APP_URL` | `https://NOME-DO-SERVICO.onrender.com` (o nome que você deu ao serviço) |
 | `OWNER_EMAIL`, `OWNER_NAME`, `OWNER_PASSWORD` | seu acesso (senha com 12+ caracteres, 3 tipos) |
-| `LLM_PROVIDER`, `LLM_API_KEY` | (opcional) IA gratuita — veja abaixo |
+| `NODE_ENV` | `production` |
+| `LLM_PROVIDER` / `LLM_API_KEY` | (opcional) IA gratuita — veja a seção IA |
+
+   Em **Health Check Path** coloque `/api/health`. Clique em **Create Web Service** e aguarde o build (alguns minutos). No log deve aparecer `Proprietário criado`.
+4. **Entre** em `https://NOME-DO-SERVICO.onrender.com`, faça login, ative o **2FA** (Configurações → Segurança) e, no Render, **apague a variável `OWNER_PASSWORD`**.
+5. **Agendador grátis (cron-job.org):** crie duas tarefas:
+   - `GET https://NOME-DO-SERVICO.onrender.com/api/health` a cada 10 minutos (mantém o site acordado);
+   - `GET https://NOME-DO-SERVICO.onrender.com/api/cron` a cada 15 minutos, com o cabeçalho `Authorization: Bearer SEU_CRON_SECRET` (faz as rotinas: atrasos, follow-ups, recorrências, prazos).
+
+**O que esperar do plano gratuito:**
+- Sem tráfego o Render "dorme"; o primeiro acesso pode levar cerca de 1 minuto. O ping do passo 5 reduz isso, mas não é garantia.
+- O Neon tem limite de armazenamento e pode "pausar" o banco por inatividade (acorda sozinho em segundos). Os documentos dos clientes ficam **dentro do banco** (máx. 5 MB cada) e contam nesse limite.
+- Não há disco persistente: o backup pelo botão do sistema pode não funcionar (versão do `pg_dump`) e some a cada reinício. Use o histórico de restauração do Neon e **exporte seus dados em JSON** (Configurações → Dados e LGPD) com frequência.
+- Eu não consegui testar este caminho de ponta a ponta (a rede do meu ambiente é restrita); o código e o build foram validados, mas se algum passo falhar, me mande o log do Render.
+
+### Caminho B — servidor próprio (VPS), mais robusto
+Serve uma VPS paga (~US$ 5/mês) ou a VM **gratuita Always Free da Oracle Cloud** (exige cartão só para verificar a identidade e, às vezes, não há vaga na sua região; o compose usa imagens multi-arquitetura, mas não testei em ARM). Domínio gratuito: crie um subdomínio em duckdns.org apontando para o IP do servidor.
 
 ```bash
-# 4) Suba tudo (a primeira vez demora alguns minutos):
-docker compose up -d --build
-
-# 5) Veja se está tudo de pé:
-docker compose ps
-docker compose logs app --tail 30     # deve mostrar "Proprietário criado" e "Ready"
+curl -fsSL https://get.docker.com | sh                       # instala o Docker
+git clone -b claude/prompt-mestre-saas-crm-58ylp6 https://github.com/Roni-oSilva/system-carvex.git
+cd system-carvex && cp .env.example .env && nano .env        # preencha (tabela abaixo)
+docker compose up -d --build                                 # sobe HTTPS + app + banco + agendador
+docker compose logs app --tail 30                            # deve mostrar "Proprietário criado"
 ```
-6. Abra `https://crm.seudominio.com.br` (o certificado HTTPS é emitido sozinho em ~1 minuto), entre com `OWNER_EMAIL`/`OWNER_PASSWORD`.
-7. Vá em **Configurações → Segurança → Configurar 2FA** e guarde os códigos de recuperação.
-8. Edite o `.env`, **apague a linha `OWNER_PASSWORD`** e rode `docker compose up -d`.
-
-### Atualizar depois
-```bash
-cd system-carvex && git pull && docker compose up -d --build
-```
-
-### Alternativas sem servidor próprio (Railway, Render, Fly.io)
-Use o `Dockerfile`, crie um PostgreSQL gerenciado e informe `DATABASE_URL`, os segredos e `OWNER_*` como variáveis de ambiente, com `APP_URL` = URL pública. **Importante:** monte um **volume persistente em `/data`** (documentos e backups ficam lá; sem volume eles somem a cada deploy) e agende uma chamada a cada 15 min a `GET https://SEU-APP/api/cron` com o cabeçalho `Authorization: Bearer <CRON_SECRET>` (o site cron-job.org faz isso de graça). Esse caminho eu não testei de ponta a ponta; o caminho da VPS acima é o recomendado.
+No `.env`: `DOMAIN` (ex.: `crm.duckdns.org`) e `APP_URL` (`https://crm.duckdns.org`), `POSTGRES_PASSWORD`, `DATA_ENCRYPTION_KEY`, `APP_SECRET`, `CRON_SECRET` (cada um com `openssl rand -hex 32`), `OWNER_EMAIL`, `OWNER_NAME`, `OWNER_PASSWORD`. O certificado HTTPS é emitido sozinho. Depois do primeiro login: ative o 2FA e apague `OWNER_PASSWORD` do `.env` (`docker compose up -d`). Atualizar: `git pull && docker compose up -d --build`. Aqui o backup diário e o botão de backup funcionam (ficam em `/data/backups`; baixe cópias para fora do servidor).
 
 ---
 

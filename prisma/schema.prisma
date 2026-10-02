@@ -699,7 +699,8 @@ model Document {
   id        String   @id @default(cuid())
   clientId  String?
   name      String
-  storageKey String // chave no object storage privado
+  storageKey String // "db" = conteúdo em `data`; senão, nome do arquivo em DATA_DIR/uploads (legado)
+  data       Bytes? // conteúdo do arquivo (funciona em hospedagem sem disco persistente)
   mime      String
   sizeBytes Int
   createdAt DateTime @default(now())
