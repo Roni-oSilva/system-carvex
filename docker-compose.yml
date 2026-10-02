@@ -1,5 +1,17 @@
-# Produção simples em uma VPS: app + PostgreSQL + agendador. Coloque um proxy HTTPS (Caddy/Nginx/Traefik) na frente.
+# Produção em uma VPS: HTTPS (Caddy) + app + PostgreSQL + agendador de rotinas.
 services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [app]
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: "${DOMAIN:?defina DOMAIN no .env}"
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
   db:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -23,7 +35,7 @@ services:
       DATABASE_URL: postgresql://carvex:${POSTGRES_PASSWORD}@db:5432/carvex?schema=public
       DATA_DIR: /data
     volumes: [appdata:/data]
-    ports: ["127.0.0.1:3000:3000"]   # exponha só via proxy HTTPS
+    expose: ["3000"]
 
   cron:
     image: curlimages/curl:8.10.1
@@ -35,3 +47,5 @@ services:
 volumes:
   pgdata:
   appdata:
+  caddy_data:
+  caddy_config:
