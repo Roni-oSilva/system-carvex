@@ -30,7 +30,7 @@ npm test && npm run typecheck && npm run lint
 ```
 
 ## Operação
-- **Backup:** `DATABASE_URL=... ./scripts/backup.sh ./backups 14` (pg_dump + SHA-256 + restauração de teste + retenção). Agende no cron do servidor e copie para fora da VPS. Também: Configurações → Dados e LGPD → exportar JSON. Restaurar: `pg_restore --clean --no-owner --dbname=<url> arquivo.dump`.
+- **Backup:** automático todo dia pela rotina `/api/cron` (com teste de restauração e retenção de 14 dias) e manual em Configurações → Backups (gerar, baixar, testar restauração). Os arquivos ficam em `/data/backups`: baixe cópias para fora da VPS. Alternativa por linha de comando: `DATABASE_URL=... ./scripts/backup.sh ./backups 14`. Também: Configurações → Dados e LGPD → exportar JSON. Restaurar: `pg_restore --clean --no-owner --dbname=<url> arquivo.dump`.
 - **Esqueceu a senha:** defina `OWNER_RESET=1` + `OWNER_PASSWORD` no `.env`, reinicie, depois remova `OWNER_RESET`. (Perdeu o 2FA: use um código de recuperação; sem eles, apague `mfaEnabled` no banco.)
 - **Rotinas:** pagamentos atrasados, recorrências, follow-ups, leads sem resposta, prazos, propostas expiradas e limpeza — rodam via `/api/cron` ou em Automações → Executar agora.
 - **IA:** `LLM_API_KEY` (Anthropic) · **Busca:** `GOOGLE_PLACES_API_KEY` (campos de telefone/site usam SKUs pagos do Google; respeite os termos de armazenamento).

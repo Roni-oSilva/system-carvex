@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { NAV } from "@/components/nav";
+import { PixelIcon } from "@/components/pixel-icon";
 import { Grid, Group, Stat, Win } from "@/components/ui";
 import { db } from "@/lib/db";
 import { brl, dtt } from "@/lib/format";
@@ -19,8 +20,8 @@ export default async function DashboardPage() {
     <AppShell current="/" title="Área de trabalho">
       <div className="flex flex-wrap gap-2">
         {NAV.filter((n) => n.href !== "/").map((n) => (
-          <Link key={n.href} href={n.href} className="flex w-[88px] flex-col items-center gap-1 p-2 text-center text-black no-underline hover:bg-[#000080] hover:text-white">
-            <n.icon size={30} strokeWidth={1.5} /><span className="text-xs">{n.label}</span>
+          <Link key={n.href} href={n.href} className="flex w-[92px] flex-col items-center gap-1 p-2 text-center text-black no-underline hover:bg-[#000080] hover:text-white">
+            <PixelIcon name={n.icon} size={40} /><span className="text-xs">{n.label}</span>
           </Link>
         ))}
       </div>

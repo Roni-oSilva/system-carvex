@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { log } from "@/lib/logger";
 import { emit } from "./engine";
+import { createBackup, pruneBackups, verifyBackup } from "./backup";
 import { notify } from "./notify";
 
 /**
@@ -62,6 +63,15 @@ export async function runRoutines() {
   });
 
   await step("propostas_expiradas", async () => (await db.proposal.updateMany({ where: { status: "SENT", validUntil: { lt: now }, deletedAt: null }, data: { status: "EXPIRED" } })).count);
+
+  await step("backup_diario", async () => {
+    const last = await db.backupRecord.findFirst({ where: { status: "DONE" }, orderBy: { createdAt: "desc" } });
+    if (last && now.getTime() - last.createdAt.getTime() < 23 * 3600_000) return 0;
+    const id = await createBackup();
+    await verifyBackup(id);
+    await pruneBackups(14);
+    return 1;
+  });
 
   await step("limpeza", async () => {
     const a = await db.loginAttempt.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - 30 * 86400_000) } } });

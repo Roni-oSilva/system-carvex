@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Bell, LogOut, Monitor, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { db } from "@/lib/db";
 import { logoutAction } from "@/server/auth-actions";
 import { requireUser } from "@/server/session";
 import { Clock } from "./clock";
 import { NAV, isActive } from "./nav";
+import { PixelIcon } from "./pixel-icon";
 
 export async function AppShell({ children, current, title }: { children: React.ReactNode; current: string; title: string }) {
   const s = await requireUser();
@@ -15,7 +16,7 @@ export async function AppShell({ children, current, title }: { children: React.R
       <div className="mx-auto max-w-[1400px] p-1 sm:p-3">
         <div className="win">
           <div className="win-title no-print">
-            <Monitor size={14} /> <span className="truncate">Carvex — {title}</span>
+            <PixelIcon name="dashboard" /> <span className="truncate">Carvex — {title}</span>
             <span className="ml-auto hidden font-normal sm:inline">{s.user.name}</span>
           </div>
           <nav aria-label="Principal" className="menubar no-print">
@@ -31,19 +32,19 @@ export async function AppShell({ children, current, title }: { children: React.R
 
       <div className="taskbar no-print">
         <details className="relative">
-          <summary className="btn list-none"><Monitor size={14} /> Iniciar</summary>
+          <summary className="btn list-none"><PixelIcon name="start" /> Iniciar</summary>
           <div className="startmenu win">
             <div className="strip">Carvex 98</div>
             <ul>
-              {NAV.map((n) => <li key={n.href}><Link href={n.href}><n.icon size={16} /> {n.label}</Link></li>)}
+              {NAV.map((n) => <li key={n.href}><Link href={n.href}><PixelIcon name={n.icon} /> {n.label}</Link></li>)}
               <li className="my-1 border-t border-border" />
-              <li><form action={logoutAction}><button><LogOut size={16} /> Sair</button></form></li>
+              <li><form action={logoutAction}><button><PixelIcon name="lock" /> Sair</button></form></li>
             </ul>
           </div>
         </details>
-        <Link href={active.href} className="btn-ghost !justify-start !font-bold sunken !bg-[#dfdfdf] max-w-[40vw] truncate"><active.icon size={14} /> <span className="truncate">{title}</span></Link>
+        <Link href={active.href} className="btn-ghost !justify-start !font-bold sunken !bg-[#dfdfdf] max-w-[40vw] truncate"><PixelIcon name={active.icon} /> <span className="truncate">{title}</span></Link>
         <div className="tray">
-          <Link href="/notificacoes" aria-label={`Notificações: ${unread} não lidas`} className="flex items-center gap-1 text-black no-underline"><Bell size={14} />{unread > 0 && <b className="text-danger">{unread}</b>}</Link>
+          <Link href="/notificacoes" aria-label={`Notificações: ${unread} não lidas`} className="flex items-center gap-1 text-black no-underline"><PixelIcon name="bell" />{unread > 0 && <b className="text-danger">{unread}</b>}</Link>
           <Clock />
         </div>
       </div>

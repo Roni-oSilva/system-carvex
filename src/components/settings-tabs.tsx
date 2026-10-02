@@ -4,6 +4,7 @@ const TABS = [
   ["security", "Segurança", "/settings/security"],
   ["regras", "Regras comerciais", "/settings/regras"],
   ["integracoes", "Integrações", "/settings/integracoes"],
+  ["backups", "Backups", "/settings/backups"],
   ["dados", "Dados e LGPD", "/settings/dados"],
   ["auditoria", "Auditoria", "/settings/auditoria"],
 ] as const;
