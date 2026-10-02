@@ -6,7 +6,7 @@ import { LeadFields } from "@/components/lead-form";
 import { Field, Flash, Form, Group, Win, type SP } from "@/components/ui";
 import { db } from "@/lib/db";
 import { dt, dtt, LEAD_STATUS_LABEL, NF, orNF, PIPELINE, STAGE_LABEL } from "@/lib/format";
-import { llmConfigured } from "@/lib/llm";
+import { aiMode } from "@/lib/llm";
 import { addInteractionAction, approveMessageAction, deleteLeadAction, generateMessageAction, markSentAction, moveLeadAction, reanalyzeAction, setFollowUpAction, startClientAction, updateLeadAction, updateMessageAction } from "@/server/crm-actions";
 import { ctx } from "@/server/guard";
 import { aiClassifyAction, aiMessageAction, aiNextStepsAction } from "@/server/ia-actions";
@@ -23,7 +23,7 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
   if (!lead) notFound();
   const niches = await db.niche.findMany({ where: { active: true }, orderBy: { name: "asc" } });
   const a = (lead.analysis ?? {}) as Analysis;
-  const ai = llmConfigured();
+  const basic = aiMode() === "basic";
   const info: [string, string][] = [
     ["Nicho", orNF(lead.niche?.name)], ["Categoria", orNF(lead.category)], ["Cidade/UF", orNF([lead.city, lead.state].filter(Boolean).join("/"))], ["Endereço", orNF(lead.address)],
     ["Telefone", orNF(lead.phone)], ["E-mail", orNF(lead.email)], ["Site", orNF(lead.website)], ["Instagram", lead.instagram ? `@${lead.instagram}` : NF],
@@ -65,8 +65,8 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
         {a.scoreMatched?.length ? <p className="text-xs text-muted">Critérios de score atendidos: {a.scoreMatched.join(", ")}</p> : null}
         <div className="mt-2 flex flex-wrap gap-2">
           <Form action={reanalyzeAction} csrf={csrf}><input type="hidden" name="id" value={lead.id} /><button className="btn-ghost">Reanalisar</button></Form>
-          <Form action={aiClassifyAction} csrf={csrf}><input type="hidden" name="leadId" value={lead.id} /><button className="btn-ghost" disabled={!ai} title={ai ? "" : "AGUARDANDO INTEGRAÇÃO (LLM_API_KEY)"}>IA: classificar nicho</button></Form>
-          <Form action={aiNextStepsAction} csrf={csrf}><input type="hidden" name="leadId" value={lead.id} /><button className="btn-ghost" disabled={!ai} title={ai ? "" : "AGUARDANDO INTEGRAÇÃO (LLM_API_KEY)"}>IA: próximos passos</button></Form>
+          <Form action={aiClassifyAction} csrf={csrf}><input type="hidden" name="leadId" value={lead.id} /><button className="btn-ghost">{basic ? "Sugerir nicho" : "IA: classificar nicho"}</button></Form>
+          <Form action={aiNextStepsAction} csrf={csrf}><input type="hidden" name="leadId" value={lead.id} /><button className="btn-ghost">{basic ? "Próximos passos" : "IA: próximos passos"}</button></Form>
         </div>
       </Win>
 
@@ -78,7 +78,7 @@ export default async function LeadPage({ params, searchParams }: { params: Promi
             <Field label="Gerar a partir do modelo"><select name="stage" className="input">{Object.entries(STAGE_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
             <button className="btn">Gerar rascunho</button>
           </Form>
-          <Form action={aiMessageAction} csrf={csrf} className="flex items-end"><input type="hidden" name="leadId" value={lead.id} /><button className="btn-ghost" disabled={!ai} title={ai ? "" : "AGUARDANDO INTEGRAÇÃO (LLM_API_KEY)"}>Gerar com IA</button></Form>
+          <Form action={aiMessageAction} csrf={csrf} className="flex items-end"><input type="hidden" name="leadId" value={lead.id} /><button className="btn-ghost">{basic ? "Gerar (modo básico)" : "Gerar com IA"}</button></Form>
         </div>
         <p className="mt-1 text-xs text-muted">Nada é enviado automaticamente: você revisa, aprova, envia pelo WhatsApp e marca como enviada.</p>
         {lead.messages.map((m) => (

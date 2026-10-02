@@ -16,7 +16,11 @@ const csp = [
   "object-src 'none'",
 ].join("; ");
 
+// Atrás de proxy reverso, o Next compara Origin × Host nas Server Actions: liberamos explicitamente o domínio público.
+const appHost = (() => { try { return new URL(process.env.APP_URL ?? "").host; } catch { return undefined; } })();
+
 const config: NextConfig = {
+  experimental: { serverActions: { allowedOrigins: appHost ? [appHost] : [] } },
   poweredByHeader: false,
   reactStrictMode: true,
   eslint: { ignoreDuringBuilds: false },

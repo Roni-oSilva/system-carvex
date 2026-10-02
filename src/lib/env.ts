@@ -11,7 +11,9 @@ const schema = z.object({
   CRON_SECRET: z.string().min(24).optional(),
   DATA_DIR: z.string().default("./data"),
   LLM_API_KEY: z.string().optional(),
-  LLM_MODEL: z.string().default("claude-sonnet-5-5"),
+  LLM_PROVIDER: z.enum(["gemini", "groq", "anthropic"]).default("gemini"),
+  LLM_MODEL: z.string().optional(),
+  LLM_BASE_URL: z.string().url().optional(),
 });
 
 export type Env = z.infer<typeof schema>;
