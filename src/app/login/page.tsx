@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { LoginForm } from "@/components/login-form";
 import { Mascot } from "@/components/mascot";
+import { mailConfigured } from "@/lib/mail";
 import { getSession } from "@/server/session";
 
 export default async function LoginPage() {
@@ -18,6 +20,7 @@ export default async function LoginPage() {
           <div className="space-y-3">
             <p className="font-bold">Mostre seu crachá! Entre com e-mail e senha.</p>
             <LoginForm />
+            {mailConfigured() && <p className="text-sm"><Link href="/esqueci" className="underline">Esqueci minha senha</Link></p>}
           </div>
         </div>
       </div>

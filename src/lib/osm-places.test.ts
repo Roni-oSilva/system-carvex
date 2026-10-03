@@ -12,6 +12,11 @@ describe("OpenStreetMap", () => {
     const q = buildOverpassQuery({ niche: "Pizzarias", area: { bbox: [-5.4, -49.2, -5.3, -49.0] }, limit: 5 });
     expect(q).toContain('["amenity"="restaurant"]["cuisine"~"pizza"]["name"](-5.4,-49.2,-5.3,-49);');
   });
+  it("raio usa around:lat,lon em metros", () => {
+    const q = buildOverpassQuery({ niche: "Dentista", area: { around: { radius: 5000, lat: -5.37, lon: -49.12 } }, limit: 10 });
+    expect(q).toContain('nwr["amenity"="dentist"]["name"](around:5000,-5.37,-49.12);');
+    expect(q).not.toContain("area(");
+  });
   it("nicho desconhecido busca pelo nome e escapa entrada hostil", () => {
     const q = buildOverpassQuery({ niche: 'x"];out;//', keyword: "a.b", limit: 999 });
     expect(q).not.toContain('"];out;//');

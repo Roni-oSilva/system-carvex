@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { AppShell } from "@/components/app-shell";
+import { AiReport } from "@/components/ai-ask";
 import { PrintButton } from "@/components/confirm-button";
 import { Grid, one, Stat, Win, type SP } from "@/components/ui";
 import { db } from "@/lib/db";
@@ -7,7 +8,7 @@ import { brl, LEAD_STATUS_LABEL, PROJECT_STATUS_LABEL } from "@/lib/format";
 import { ctx } from "@/server/guard";
 
 export default async function ReportsPage({ searchParams }: { searchParams: SP }) {
-  await ctx();
+  const { csrf } = await ctx();
   const q = await searchParams;
   const now = new Date();
   const from = one(q.from) ? new Date(`${one(q.from)}T00:00:00`) : new Date(now.getFullYear(), now.getMonth(), 1);
@@ -54,6 +55,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: SP }
         </form>
         <p className="mt-1 text-xs text-muted">Período: {from.toLocaleDateString("pt-BR")} a {to.toLocaleDateString("pt-BR")}. O filtro de serviço usa a categoria do pagamento/projeto.</p>
       </Win>
+      <Win title="Resumo em texto (IA ou modo básico)"><AiReport csrf={csrf} /></Win>
       <Win title="Comercial">
         <Grid><Stat label="Leads" value={leads.length} /><Stat label="Contatos" value={contacted} /><Stat label="Respostas" value={`${replied} (${pct(replied, contacted)})`} /><Stat label="Vendas" value={won} /><Stat label="Conversão" value={pct(won, leads.length)} /><Stat label="Mensagens enviadas" value={msgs.filter((m) => m.status === "SENT").length} /><Stat label="Propostas aceitas" value={accepted.length} /><Stat label="Ticket médio" value={brl(accepted.length ? accepted.reduce((a, p) => a + Number(p.total), 0) / accepted.length : 0)} /></Grid>
       </Win>

@@ -64,18 +64,21 @@ A IA tem dois modos (Configurações → **IA → Testar conexão** mostra qual 
 
 Privacidade: com chave, vão ao provedor só nome, categoria, cidade, site, Instagram e avaliação da empresa + o texto que você digitar (nunca telefones, e-mails nem financeiro). Planos gratuitos de alguns provedores podem usar os dados para melhorar seus produtos — leia os termos. Tudo que a IA gera é marcado e fica como rascunho para você revisar; nada é enviado sozinho.
 
+## E-mail (recuperação de senha)
+Opcional e gratuito: crie uma **senha de app** no Gmail (Conta Google → Segurança → Verificação em duas etapas → Senhas de app) e defina `SMTP_URL=smtps://seuemail%40gmail.com:SENHA_DE_APP@smtp.gmail.com:465`. O e-mail só é enviado a endereços cadastrados e a resposta da tela é sempre a mesma (não revela quem existe).
+
 ## Prospecção
-Busca por **OpenStreetMap** (Nominatim + Overpass): gratuita, sem chave, limitada a 6 buscas/hora no app (uso justo). A cobertura varia por cidade e telefone/site costumam faltar — complemente por **CSV** ou cadastro manual. Dados © colaboradores do OpenStreetMap (ODbL).
+Busca por **OpenStreetMap** (com filtro opcional de raio em km) (Nominatim + Overpass): gratuita, sem chave, limitada a 6 buscas/hora no app (uso justo). A cobertura varia por cidade e telefone/site costumam faltar — complemente por **CSV** ou cadastro manual. Dados © colaboradores do OpenStreetMap (ODbL).
 
 ## Operação
 - **Backup:** automático todo dia (com teste de restauração e retenção de 14 dias) e manual em Configurações → Backups (gerar, baixar, testar restauração). Ficam em `/data/backups`: **baixe cópias para fora do servidor**. Restaurar de verdade é manual: `pg_restore --clean --no-owner --dbname=<url> arquivo.dump`.
-- **Esqueceu a senha:** no `.env` defina `OWNER_RESET=1` e `OWNER_PASSWORD`, rode `docker compose up -d`, depois remova `OWNER_RESET`. Perdeu o 2FA: use um código de recuperação.
+- **Esqueceu a senha:** se `SMTP_URL` estiver configurado, use **“Esqueci minha senha”** no login (link de uso único, válido por 1 hora; com 2FA ativo exige também o código). Sem e-mail configurado, no `.env` defina `OWNER_RESET=1` e `OWNER_PASSWORD`, rode `docker compose up -d`, depois remova `OWNER_RESET`. Perdeu o 2FA: use um código de recuperação.
 - **Rotinas** (pagamentos atrasados, recorrências, follow-ups, prazos, backup diário, limpeza): rodam pelo serviço `cron` do compose ou em Automações → Executar agora.
 - **Logs:** `docker compose logs -f app`. Saúde: `GET /api/health`.
 
 ## Segurança (resumo)
 argon2id · 2FA TOTP + códigos de recuperação (segredo AES-256-GCM) · sessão opaca com hash no banco, expiração absoluta e por inatividade, logout remoto · anti brute force · CSRF · CSP/HSTS/X-Frame-Options · validação com zod · Prisma parametrizado · autorização no servidor · auditoria · erros técnicos só no log · segredos só em variáveis de ambiente.
-Limitações: rate limit genérico em memória (um servidor); sem recuperação de senha por e-mail (use `OWNER_RESET`); CSP usa `'unsafe-inline'`; **perder a `DATA_ENCRYPTION_KEY` torna o 2FA cadastrado irrecuperável — guarde-a em local seguro**.
+Limitações: rate limit genérico em memória (um servidor); recuperação por e-mail depende de SMTP configurado (senão use `OWNER_RESET`); CSP usa `'unsafe-inline'`; **perder a `DATA_ENCRYPTION_KEY` torna o 2FA cadastrado irrecuperável — guarde-a em local seguro**.
 
 ## Desenvolvimento
 ```bash

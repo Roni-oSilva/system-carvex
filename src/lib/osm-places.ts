@@ -39,8 +39,8 @@ const NICHE_TAGS: [RegExp, string[]][] = [
 
 const esc = (s: string) => s.replace(/[\\"]/g, "").replace(/[.*+?^${}()|[\]]/g, "\\$&").slice(0, 60);
 
-export function buildOverpassQuery(opts: { niche: string; keyword?: string; area?: { relationId: number } | { bbox: [number, number, number, number] }; limit: number }) {
-  const where = !opts.area ? "" : "relationId" in opts.area ? "(area.a)" : `(${opts.area.bbox.join(",")})`;
+export function buildOverpassQuery(opts: { niche: string; keyword?: string; area?: { relationId: number } | { bbox: [number, number, number, number] } | { around: { radius: number; lat: number; lon: number } }; limit: number }) {
+  const where = !opts.area ? "" : "relationId" in opts.area ? "(area.a)" : "around" in opts.area ? `(around:${Math.round(opts.area.around.radius)},${opts.area.around.lat},${opts.area.around.lon})` : `(${opts.area.bbox.join(",")})`;
   const tagSets = NICHE_TAGS.find(([re]) => re.test(opts.niche))?.[1];
   const nameFilter = opts.keyword ? `["name"~"${esc(opts.keyword)}",i]` : "";
   const parts = tagSets
@@ -78,19 +78,20 @@ export function parseOverpass(json: { elements?: OsmEl[] }): PlaceResult[] {
   return out;
 }
 
-async function geocode(city: string, region?: string) {
+async function geocode(city: string, region?: string, radiusKm?: number) {
   const q = [city, region, "Brasil"].filter(Boolean).join(", ");
   const res = await fetch(`${NOMINATIM}?${new URLSearchParams({ q, format: "jsonv2", limit: "1", countrycodes: "br" })}`, { headers: { "User-Agent": UA, "Accept-Language": "pt-BR" }, signal: AbortSignal.timeout(15_000) });
   if (!res.ok) throw new Error(`Nominatim HTTP ${res.status}`);
-  const [hit] = (await res.json()) as { osm_type: string; osm_id: number; boundingbox: string[] }[];
+  const [hit] = (await res.json()) as { osm_type: string; osm_id: number; boundingbox: string[]; lat: string; lon: string }[];
   if (!hit) return null;
+  if (radiusKm) return { around: { radius: Math.min(Math.max(radiusKm, 1), 50) * 1000, lat: Number(hit.lat), lon: Number(hit.lon) } };
   if (hit.osm_type === "relation") return { relationId: hit.osm_id };
   const [s, n, w, e] = hit.boundingbox.map(Number);
   return { bbox: [s!, w!, n!, e!] as [number, number, number, number] };
 }
 
-export async function searchPlaces(opts: { niche: string; city: string; region?: string; keyword?: string; limit: number }): Promise<PlaceResult[]> {
-  const area = await geocode(opts.city, opts.region);
+export async function searchPlaces(opts: { niche: string; city: string; region?: string; keyword?: string; radiusKm?: number; limit: number }): Promise<PlaceResult[]> {
+  const area = await geocode(opts.city, opts.region, opts.radiusKm);
   if (!area) throw new Error("Cidade não encontrada no OpenStreetMap");
   const res = await fetch(OVERPASS, {
     method: "POST", headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },

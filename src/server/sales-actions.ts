@@ -76,12 +76,12 @@ export async function createProposalAction(form: FormData): Promise<void> {
 export async function updateProposalAction(form: FormData): Promise<void> {
   const id = String(form.get("id"));
   await act(form, `/vendas/propostas/${id}`, async (s) => {
-    const d = parse(z.object({ discount: money.default(0), deadlineDays: z.coerce.number().int().min(1).max(365).optional().or(z.literal("").transform(() => undefined)), paymentTerms: z.string().max(500).optional(), validUntil: z.string().optional() }), form);
+    const d = parse(z.object({ discount: money.default(0), deadlineDays: z.coerce.number().int().min(1).max(365).optional().or(z.literal("").transform(() => undefined)), paymentTerms: z.string().max(500).optional(), notes: z.string().max(3000).optional(), validUntil: z.string().optional() }), form);
     const p = await db.proposal.findUniqueOrThrow({ where: { id }, include: { items: true } });
     if (p.status === "ACCEPTED") throw new UserError("Proposta aceita não pode ser alterada.");
     const sum = p.items.reduce((a, i) => a + Number(i.unitPrice) * i.quantity, 0);
     if (d.discount > sum) throw new UserError("O desconto não pode ser maior que o total.");
-    await db.proposal.update({ where: { id }, data: { discount: d.discount, total: sum - d.discount, deadlineDays: d.deadlineDays ?? null, paymentTerms: opt(d.paymentTerms), validUntil: d.validUntil ? new Date(`${d.validUntil}T23:59:59`) : null } });
+    await db.proposal.update({ where: { id }, data: { discount: d.discount, total: sum - d.discount, deadlineDays: d.deadlineDays ?? null, paymentTerms: opt(d.paymentTerms), notes: opt(d.notes), validUntil: d.validUntil ? new Date(`${d.validUntil}T23:59:59`) : null } });
     await audit({ action: "proposal.update", userId: s.userId, entity: "proposal", entityId: id, category: "finance" });
     return { msg: "Proposta atualizada." };
   });

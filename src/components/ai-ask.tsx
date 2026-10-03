@@ -1,6 +1,6 @@
 "use client";
 
-import { aiAskAction, aiTestAction } from "@/server/ia-actions";
+import { aiAskAction, aiReportAction, aiTestAction } from "@/server/ia-actions";
 import { ActionForm } from "./form";
 
 export function AiAsk({ csrf, leads }: { csrf: string; leads: { id: string; name: string }[] }) {
@@ -16,4 +16,8 @@ export function AiAsk({ csrf, leads }: { csrf: string; leads: { id: string; name
 
 export function AiTest({ csrf }: { csrf: string }) {
   return <ActionForm action={aiTestAction} csrf={csrf} submit="Testar conexão" className="space-y-2" />;
+}
+
+export function AiReport({ csrf }: { csrf: string }) {
+  return <ActionForm action={aiReportAction} csrf={csrf} submit="Gerar resumo em texto" className="space-y-2" />;
 }

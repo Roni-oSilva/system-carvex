@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { LeadStatus, Prisma } from "@prisma/client";
 import { AppShell } from "@/components/app-shell";
+import { KanbanBoard } from "@/components/kanban-board";
 import { Empty, Flash, Form, one, Win, type SP } from "@/components/ui";
 import { db } from "@/lib/db";
 import { dt, LEAD_STATUS_LABEL, PIPELINE } from "@/lib/format";
@@ -58,25 +59,15 @@ export default async function CrmPage({ searchParams }: { searchParams: SP }) {
         </form>
 
         {total === 0 ? <Empty>Nenhum lead encontrado. Use <Link href="/prospeccao">Prospecção</Link> ou <Link href="/crm/novo">cadastre um lead</Link>.</Empty> : view === "kanban" ? (
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {PIPELINE.map((st) => {
-              const col = leads.filter((l) => l.status === st);
-              return (
-                <div key={st} className="kan-col">
-                  <h3 className="mb-1 flex justify-between font-bold"><span>{LEAD_STATUS_LABEL[st]}</span><span className="badge">{col.length}</span></h3>
-                  {col.map((l) => (
-                    <div key={l.id} className="kan-card">
-                      <Link href={`/crm/${l.id}`} className="font-bold">{l.name}</Link>
-                      <p className="text-xs text-muted">{[l.niche?.name, l.city].filter(Boolean).join(" · ") || "nicho/cidade não informados"}</p>
-                      {l.opportunity && <p className="text-xs">{l.opportunity}</p>}
-                      <p className="text-xs">{l.score != null && <span className="badge mr-1">score {l.score}</span>}{l.followUpAt && <span className="badge">follow-up {dt(l.followUpAt)}</span>}</p>
-                      <MoveForm id={l.id} current={l.status} />
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-          </div>
+          <KanbanBoard
+            csrf={csrf}
+            back={href({})}
+            statuses={[...PIPELINE, "DISCARDED"].map((v) => ({ value: v, label: LEAD_STATUS_LABEL[v]! }))}
+            cols={PIPELINE.map((st) => ({
+              status: st, label: LEAD_STATUS_LABEL[st]!,
+              cards: leads.filter((l) => l.status === st).map((l) => ({ id: l.id, name: l.name, sub: [l.niche?.name, l.city].filter(Boolean).join(" · ") || "nicho/cidade não informados", opportunity: l.opportunity, score: l.score, followUp: l.followUpAt ? dt(l.followUpAt) : null })),
+            }))}
+          />
         ) : (
           <>
             <div className="overflow-x-auto"><table className="tbl">

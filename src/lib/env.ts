@@ -14,6 +14,8 @@ const schema = z.object({
   LLM_PROVIDER: z.enum(["gemini", "groq", "anthropic"]).default("gemini"),
   LLM_MODEL: z.string().optional(),
   LLM_BASE_URL: z.string().url().optional(),
+  SMTP_URL: z.string().optional(), // smtp(s)://usuario:senha@host:porta  (ou "log" só para desenvolvimento)
+  MAIL_FROM: z.string().optional(),
 });
 
 export type Env = z.infer<typeof schema>;

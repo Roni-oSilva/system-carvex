@@ -136,3 +136,43 @@ export async function aiTestAction(_: FormState, form: FormData): Promise<FormSt
     return { error: "Falha ao conectar. Confira LLM_PROVIDER, LLM_API_KEY e LLM_MODEL (um modelo descontinuado também causa erro 404)." };
   }
 }
+
+// ───────── Propostas e relatórios ─────────
+const brl = (n: unknown) => Number(n).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+/** Gera o texto de apresentação da proposta (rascunho editável). */
+export async function aiProposalAction(form: FormData): Promise<void> {
+  const id = String(form.get("id"));
+  await act(form, `/vendas/propostas/${id}`, async (s) => {
+    guardLlm(s.userId);
+    const p = await db.proposal.findUniqueOrThrow({ where: { id }, include: { client: { include: { lead: true } }, items: true } });
+    if (p.status === "ACCEPTED") throw new UserError("Proposta aceita não pode ser alterada.");
+    const itens = p.items.map((i) => `${i.description} (${brl(Number(i.unitPrice) * i.quantity)})`).join("; ");
+    let text: string;
+    if (aiMode() === "llm") {
+      text = await askLlm(`<dados>\nCliente: ${clean(p.client.name)}\nCidade: ${clean(p.client.city)}\nItens: ${clean(itens, 600)}\nTotal: ${brl(p.total)}\nPrazo: ${p.deadlineDays ?? "não informado"} dias\nOportunidade detectada: ${clean(p.client.lead?.opportunity)}\n</dados>\nEscreva um texto curto (2 parágrafos) de apresentação para esta proposta comercial: foque no benefício para o cliente, cite os itens e o prazo. Não invente resultados, números nem garantias.`, 450);
+    } else {
+      text = `Prezado(a) ${p.client.name},\n\nApresentamos nossa proposta com ${itens}, no valor total de ${brl(p.total)}${p.deadlineDays ? `, com prazo de entrega de ${p.deadlineDays} dias` : ""}.\n\n${p.client.lead?.opportunity ? `Identificamos a oportunidade de ${p.client.lead.opportunity.toLowerCase()} para fortalecer a presença digital do seu negócio. ` : ""}Ficamos à disposição para ajustar o escopo e esclarecer qualquer dúvida.`;
+    }
+    await db.proposal.update({ where: { id }, data: { notes: text } });
+    return { msg: aiMode() === "llm" ? "Texto gerado pela IA — revise e edite antes de enviar." : "Texto gerado pelo modo básico (modelo fixo) — revise e edite antes de enviar." };
+  });
+}
+
+/** Resumo/relatório em texto dos números atuais. */
+export async function aiReportAction(_: FormState, form: FormData): Promise<FormState> {
+  try {
+    const s = await requireUser();
+    if (!verifyCsrf(s.csrfSecret, form.get("csrf"))) return { error: "Sessão expirada. Recarregue a página." };
+    guardLlm(s.userId);
+    const x = await getDashboard();
+    const sum = { revenueMonth: x.finance.month, expensesMonth: x.finance.expenses, receivable: x.finance.receivable, overdue: x.finance.overdue, leads: x.sales.leads, contacted: x.sales.contacted, replied: x.sales.replied, won: x.sales.won, projectsLate: x.ops.late, projectsActive: x.ops.inProgress + x.ops.waiting };
+    if (aiMode() === "basic") return { ok: `RESUMO (modo básico — calculado dos seus números):\n\n${basicSummary(sum)}` };
+    const out = await askLlm(`<dados>${JSON.stringify(sum)}</dados>\nEscreva um relatório executivo curto em português (máx. 8 linhas) sobre estes números do mês e termine com 3 sugestões práticas. Use só os números fornecidos.`, 600);
+    return { ok: `RELATÓRIO DA IA — revise antes de usar:\n\n${out}` };
+  } catch (e) {
+    if (e instanceof UserError) return { error: e.message };
+    log.error("ai_report_failed", { err: e });
+    return { error: "A IA não respondeu agora. Tente novamente em instantes." };
+  }
+}

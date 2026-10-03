@@ -27,6 +27,7 @@ export default async function ProspectPage({ searchParams }: { searchParams: SP 
               <Field label="Cidade *"><input name="city" required className="input" placeholder="ex.: Marabá" /></Field>
               <Field label="Região / bairro"><input name="region" className="input" /></Field>
               <Field label="Palavra-chave"><input name="keyword" className="input" /></Field>
+              <Field label="Raio em km (opcional, 1–50)"><input name="radiusKm" type="number" min={1} max={50} className="input" placeholder="toda a cidade" /></Field>
               <Field label="Quantidade (máx. 60)"><input name="quantity" type="number" min={1} max={60} defaultValue={20} className="input" /></Field>
             </div>
             <button className="btn">Buscar leads</button>

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Barreira de borda: sem cookie → /login. A validação real da sessão (banco) ocorre no servidor em requireUser().
 const COOKIE = process.env.NODE_ENV === "production" ? "__Host-carvex_session" : "carvex_session";
-const PUBLIC = ["/login", "/api/health", "/api/cron"]; // /api/cron valida Bearer CRON_SECRET no handler
+const PUBLIC = ["/login", "/esqueci", "/redefinir", "/api/health", "/api/cron"]; // /api/cron valida Bearer CRON_SECRET no handler
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

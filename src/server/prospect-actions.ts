@@ -15,6 +15,7 @@ const schema = z.object({
   city: z.string().trim().min(2, "informe a cidade").max(100),
   region: z.string().max(100).optional(), keyword: z.string().max(100).optional(),
   quantity: z.coerce.number().int().min(1).max(60).default(20),
+  radiusKm: z.coerce.number().min(1).max(50).optional().or(z.literal("").transform(() => undefined)),
 });
 
 async function nicheIdFor(name: string) {
@@ -30,7 +31,7 @@ export async function prospectSearchAction(form: FormData): Promise<void> {
     const query = [d.keyword, d.nicheName, "em", d.city, d.region].filter(Boolean).join(" ");
     const job = await db.job.create({ data: { type: "lead_search", status: "PROCESSING", startedAt: new Date(), payload: { query, quantity: d.quantity } } });
     try {
-      const places = await searchPlaces({ niche: d.nicheName, city: d.city, region: opt(d.region) ?? undefined, keyword: opt(d.keyword) ?? undefined, limit: d.quantity });
+      const places = await searchPlaces({ niche: d.nicheName, city: d.city, region: opt(d.region) ?? undefined, keyword: opt(d.keyword) ?? undefined, radiusKm: d.radiusKm, limit: d.quantity });
       const rules = await loadRules();
       const nicheId = await nicheIdFor(d.nicheName);
       let created = 0, merged = 0;
