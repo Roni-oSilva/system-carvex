@@ -4,6 +4,8 @@ import { Mascot } from "@/components/mascot";
 import { mailConfigured } from "@/lib/mail";
 import { requestResetAction } from "@/server/reset-actions";
 
+export const dynamic = "force-dynamic";
+
 export default function ForgotPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-5 px-4 py-10">

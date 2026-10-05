@@ -4,6 +4,8 @@ import { Mascot } from "@/components/mascot";
 import { logoutAction, mfaLoginAction } from "@/server/auth-actions";
 import { getPendingSession } from "@/server/session";
 
+export const dynamic = "force-dynamic";
+
 export default async function MfaPage() {
   const s = await getPendingSession();
   if (!s) redirect("/login");

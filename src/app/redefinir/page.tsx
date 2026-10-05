@@ -4,6 +4,8 @@ import { Mascot } from "@/components/mascot";
 import { one, type SP } from "@/components/ui";
 import { resetPasswordAction } from "@/server/reset-actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function ResetPage({ searchParams }: { searchParams: SP }) {
   const token = one((await searchParams).token) ?? "";
   return (

@@ -5,6 +5,8 @@ import { Mascot } from "@/components/mascot";
 import { mailConfigured } from "@/lib/mail";
 import { getSession } from "@/server/session";
 
+export const dynamic = "force-dynamic";
+
 export default async function LoginPage() {
   if (await getSession()) redirect("/");
   return (
