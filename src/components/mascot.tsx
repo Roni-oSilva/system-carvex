@@ -22,7 +22,7 @@ export function Mascot({ size = 120, mood = "happy", wave = false, className = "
         <ellipse cx={wave ? 152 : 142} cy={wave ? 152 : 180} rx="13" ry="27" transform={wave ? "rotate(-38 152 152)" : "rotate(-12 142 180)"} fill="url(#mfur)" />
       </g>
       <ellipse cx="82" cy="224" rx="18" ry="9" fill="#0a0a10" /><ellipse cx="118" cy="224" rx="18" ry="9" fill="#0a0a10" />
-      <path d="M100 150 L74 138 L74 162 Z M100 150 L126 138 L126 162 Z" fill="#2f5bff" stroke="#0e1240" strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M100 150 L74 138 L74 162 Z M100 150 L126 138 L126 162 Z" fill="#4f46e5" stroke="#312e81" strokeWidth="2" strokeLinejoin="round" />
       <circle cx="100" cy="150" r="7" fill="#1b2fd1" stroke="#0e1240" strokeWidth="2.5" />
       <path d="M48 76 L42 18 Q44 11 51 15 L94 44 Z" fill="url(#mfur)" /><path d="M152 76 L158 18 Q156 11 149 15 L106 44 Z" fill="url(#mfur)" />
       <path d="M55 62 L52 31 L80 49 Z" fill="#6b3f63" /><path d="M145 62 L148 31 L120 49 Z" fill="#6b3f63" />

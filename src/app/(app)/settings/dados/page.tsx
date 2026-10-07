@@ -28,9 +28,9 @@ export default async function DataPage({ searchParams }: { searchParams: SP }) {
       <Win title="Lixeira">
         <p className="mb-2 text-xs text-muted">Exclusões são reversíveis. A exclusão definitiva apaga também histórico, mensagens e fontes do registro e não pode ser desfeita.</p>
         <h3 className="font-bold">Leads ({leads.length})</h3>
-        {leads.length === 0 ? <p className="text-muted">Vazia.</p> : <ul className="sunken divide-y divide-[#e4e9ff]">{leads.map((l) => <Row key={l.id} kind="lead" id={l.id} name={l.name} at={l.deletedAt} />)}</ul>}
+        {leads.length === 0 ? <p className="text-muted">Vazia.</p> : <ul className="sunken divide-y divide-[#e2e5f0]">{leads.map((l) => <Row key={l.id} kind="lead" id={l.id} name={l.name} at={l.deletedAt} />)}</ul>}
         <h3 className="mt-3 font-bold">Clientes ({clients.length})</h3>
-        {clients.length === 0 ? <p className="text-muted">Vazia.</p> : <ul className="sunken divide-y divide-[#e4e9ff]">{clients.map((c) => <Row key={c.id} kind="client" id={c.id} name={c.name} at={c.deletedAt} />)}</ul>}
+        {clients.length === 0 ? <p className="text-muted">Vazia.</p> : <ul className="sunken divide-y divide-[#e2e5f0]">{clients.map((c) => <Row key={c.id} kind="client" id={c.id} name={c.name} at={c.deletedAt} />)}</ul>}
         {(leads.length > 0 || clients.length > 0) && (
           <Form action={purgeAction} csrf={csrf} className="mt-3 flex flex-wrap items-end gap-2">
             <Field label="Esvaziar a lixeira de…"><select name="kind" className="input"><option value="lead">Leads</option><option value="client">Clientes (e seus projetos, propostas e pagamentos)</option></select></Field>

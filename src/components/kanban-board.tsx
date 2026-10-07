@@ -24,7 +24,7 @@ export function KanbanBoard({ cols, csrf, back, statuses }: { cols: KCol[]; csrf
         <div
           key={col.status}
           className="kan-col"
-          style={over === col.status ? { background: "#dfe7ff", borderColor: "#2f5bff" } : undefined}
+          style={over === col.status ? { background: "#e0e7ff", borderColor: "#4f46e5" } : undefined}
           onDragOver={(e) => { e.preventDefault(); setOver(col.status); }}
           onDragLeave={() => setOver((o) => (o === col.status ? null : o))}
           onDrop={(e) => {

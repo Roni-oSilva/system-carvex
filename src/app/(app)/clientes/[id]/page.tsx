@@ -89,7 +89,7 @@ export default async function ClientPage({ params, searchParams }: { params: Pro
           <select name="type" className="input !w-40" aria-label="Tipo"><option value="NOTE">Anotação</option><option value="CALL">Ligação</option><option value="WHATSAPP">WhatsApp</option><option value="EMAIL">E-mail</option><option value="MEETING">Reunião</option></select>
           <input name="summary" required minLength={2} className="input !w-auto flex-1" aria-label="Resumo" placeholder="O que aconteceu?" /><button className="btn">Registrar</button>
         </Form>
-        <ul className="sunken max-h-72 divide-y divide-[#e4e9ff] overflow-auto">
+        <ul className="sunken max-h-72 divide-y divide-[#e2e5f0] overflow-auto">
           {c.interactions.length === 0 && <li className="p-2 text-muted">Sem histórico.</li>}
           {c.interactions.map((i) => <li key={i.id} className="p-2"><span className="badge mr-2">{i.type}</span>{i.summary}<span className="ml-2 text-xs text-muted">{dtt(i.createdAt)}</span></li>)}
         </ul>

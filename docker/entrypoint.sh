@@ -10,6 +10,12 @@ case "$DATABASE_URL" in
   *) export DATABASE_URL="${DATABASE_URL}?connect_timeout=30" ;;
 esac
 
+# Mais conexões simultâneas: o painel faz várias consultas ao mesmo tempo.
+case "$DATABASE_URL" in
+  *connection_limit=*) ;;
+  *) export DATABASE_URL="${DATABASE_URL}&connection_limit=10" ;;
+esac
+
 n=0
 until npx prisma migrate deploy; do
   n=$((n + 1))

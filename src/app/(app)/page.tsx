@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
-import { IconTile } from "@/components/app-shell";
 import { Mascot } from "@/components/mascot";
-import { NAV } from "@/components/nav";
 import { Grid, Group, Stat, Win } from "@/components/ui";
 import { db } from "@/lib/db";
 import { brl, dtt } from "@/lib/format";
@@ -22,33 +20,20 @@ export default async function DashboardPage() {
   return (
     <AppShell current="/" title="Painel">
       <section className="win">
-        <div className="win-body relative grid items-center gap-4 overflow-hidden !p-6 sm:grid-cols-[1fr_auto]" style={{ background: "linear-gradient(135deg,#eaf0ff,#fff)" }}>
+        <div className="win-body grid items-center gap-4 !p-6 sm:grid-cols-[1fr_auto]">
           <div>
             <p className="badge">{new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}</p>
-            <h2 className="hero-title mt-2 text-4xl text-[#2f5bff] sm:text-6xl">Bora vender,<br />{session.user.name.split(" ")[0]}!</h2>
-            <p className="mt-3 max-w-md font-semibold text-muted">{d.sales.leads} lead(s) no funil · {followups.length} follow-up(s) para os próximos 2 dias · {alerts.length} alerta(s) pendente(s).</p>
+            <h2 className="hero-title mt-2 text-3xl sm:text-4xl">Olá, {session.user.name.split(" ")[0]}!</h2>
+            <p className="mt-2 max-w-md text-muted">{d.sales.leads} lead(s) no funil · {followups.length} follow-up(s) nos próximos 2 dias · {alerts.length} alerta(s) pendente(s).</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link href="/prospeccao" className="btn">Prospectar</Link>
               <Link href="/crm/novo" className="btn-ghost">Novo lead</Link>
               <Link href="/vendas/propostas/nova" className="btn-ghost">Nova proposta</Link>
             </div>
           </div>
-          <div className="relative mx-auto grid place-items-center">
-            <span className="absolute h-44 w-44 rounded-full bg-[#2f5bff]" />
-            <span className="float absolute -right-2 top-0 h-10 w-10 rounded-full border-[3px] border-[#0e1240] bg-[#ffd23f]" />
-            <span className="float absolute -left-3 bottom-4 h-8 w-8 rotate-12 rounded-lg border-[3px] border-[#0e1240] bg-[#8a5cf6]" style={{ animationDelay: "-2s" }} />
-            <Mascot size={170} wave className="relative drop-shadow-[0_6px_0_rgba(14,18,64,.25)]" />
-          </div>
+          <Mascot size={110} wave className="mx-auto hidden sm:block" />
         </div>
       </section>
-
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-        {NAV.filter((n) => n.href !== "/").map((n) => (
-          <Link key={n.href} href={n.href} className="win !rounded-2xl flex flex-col items-center gap-2 p-3 text-center text-[#0e1240] no-underline transition hover:-translate-y-1">
-            <IconTile item={n} size={44} /><span className="font-extrabold">{n.label}</span>
-          </Link>
-        ))}
-      </div>
 
       {empty && <p className="msg msg-ok">Nenhum dado ainda. Comece em <Link href="/prospeccao">Prospecção</Link> ou cadastre um lead em <Link href="/crm">CRM</Link>. Os números abaixo vêm do banco de dados — nada é fictício.</p>}
 
@@ -77,7 +62,7 @@ export default async function DashboardPage() {
           <div className="sunken flex h-32 items-end gap-3 p-2">
             {d.months.map((m) => (
               <div key={m.key} className="flex flex-1 flex-col items-center gap-1">
-                <div className="w-full bg-[#2f5bff]" style={{ height: `${(m.total / max) * 100}%`, minHeight: m.total ? 4 : 1 }} title={brl(m.total)} />
+                <div className="w-full bg-[rgb(var(--brand))]" style={{ height: `${(m.total / max) * 100}%`, minHeight: m.total ? 4 : 1 }} title={brl(m.total)} />
                 <span className="text-xs">{m.label}</span>
               </div>
             ))}

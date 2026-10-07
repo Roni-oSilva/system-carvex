@@ -15,7 +15,7 @@ export default async function MfaPage() {
       <div className="win w-full">
         <div className="win-title"><span>Verificação em duas etapas</span></div>
         <div className="win-body space-y-3 text-center">
-          <Mascot size={90} mood="wink" className="float mx-auto" />
+          <Mascot size={90} mood="wink" className="mx-auto" />
           <p className="font-bold">Digite o código de 6 dígitos do app autenticador (ou um código de recuperação).</p>
           <ActionForm action={mfaLoginAction} submit="Verificar">
             <input name="code" autoComplete="one-time-code" required autoFocus className="input text-center text-xl tracking-[.4em]" aria-label="Código" />

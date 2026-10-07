@@ -21,9 +21,9 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
       <Flash sp={searchParams} />
       <Win title={p.name}>
         <p>Cliente: <Link href={`/clientes/${p.clientId}`}>{p.client.name}</Link> · Valor: <b>{p.value ? brl(p.value) : "—"}</b> · Recebido: <b>{brl(received)}</b>{p.cost && <> · Custo: {brl(p.cost)}</>}</p>
-        <div className="sunken my-2 h-5" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><div className="h-full bg-[#2f5bff]" style={{ width: `${pct}%` }} /></div>
+        <div className="sunken my-2 h-5" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><div className="h-full bg-[rgb(var(--brand))]" style={{ width: `${pct}%` }} /></div>
         <p className="text-xs">{done}/{p.tasks.length} etapas concluídas ({pct}%)</p>
-        <ul className="sunken mt-2 divide-y divide-[#e4e9ff]">
+        <ul className="sunken mt-2 divide-y divide-[#e2e5f0]">
           {p.tasks.map((t) => (
             <li key={t.id} className="flex items-center gap-2 p-1.5">
               <Form action={toggleTaskAction} csrf={csrf} className="contents"><input type="hidden" name="id" value={t.id} /><input type="hidden" name="projectId" value={p.id} />
